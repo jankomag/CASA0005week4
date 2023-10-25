@@ -1,1 +1,0 @@
-"0","result <- left_join(sdf, df, by = c(""COUNTRY"" = ""country""))"

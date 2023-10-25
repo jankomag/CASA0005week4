@@ -1,4 +1,0 @@
-"0","# Left join the df data frame with the iso_mapping data frame on the ""country"" column"
-"0","df_with_iso <- df %>%"
-"0","  left_join(iso_mapping, by = ""country"") |> "
-"0","  filter(!is.na(iso_code))"
