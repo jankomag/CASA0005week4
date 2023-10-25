@@ -1,0 +1,2 @@
+"0","df$gender_inequality <- as.numeric(df$gender_inequality)"
+"2","Warning: NAs introduced by coercion"

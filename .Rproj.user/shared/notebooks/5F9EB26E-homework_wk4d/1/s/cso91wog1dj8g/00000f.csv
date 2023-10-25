@@ -1,0 +1,5 @@
+"0","not_matched <- df %>%"
+"0","  anti_join(sdf, by = c(""country"" = ""COUNTRY"")) |> # what countries didn't match correctly?"
+"0","  filter(!is.na(gender_inequality)) # and for which do we have the data?"
+"0",""
+"0","not_matched # show the result"

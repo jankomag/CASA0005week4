@@ -1,0 +1,114 @@
+---
+title: "CASA0005"
+output: html_document
+date: "2023-10-25"
+---
+
+# Hello!
+
+## Welcome to this R notebook for CASA0005 module 🗺
+
+This notebooks shows the steps to join the global gender inequality index to spatial data of the World, creating a new column of difference in inequality between 2010 and 2019, as per the instructions in the CASA0005 module for week 4 homework.
+
+#### Hope you enjoy it! 😊
+
+First, let's load some packages!
+
+```{r message=FALSE, warning=FALSE}
+library(dplyr) # we'll need that to join
+library(sf) # we'll need that to deal with spatial data
+library(tmap) # we'll need that to make a map to check that what we did looks correct
+```
+
+Now, let's load some data!
+
+```{r message=FALSE, warning=FALSE}
+df <- read.csv("data/gender_ineq.csv") # index data
+sdf <- st_read("data/World_Countries_Generalized.geojson") # and spatial data
+```
+
+and make the index column numeric:
+
+```{r}
+df$gender_inequality <- as.numeric(df$gender_inequality)
+```
+
+### 🫣
+
+don't worry about this warning - it's supposed to be there.
+
+😅
+
+### Let's try to join the two datasets by matching the 'country' columns.
+
+```{r}
+result <- left_join(sdf, df, by = c("COUNTRY" = "country"))
+```
+
+Seems that this worked, but let's quickly check if all the countries joined properly
+
+```{r}
+tm_shape(result) +
+  tm_borders(lwd = 0.5) +
+  tm_fill("gender_inequality", palette = "Blues")
+```
+
+#### Hmmm, looks like there are quite a few missing values here. 😥
+
+Let's try to see which countries have not joined by country name. 🤔
+
+```{r}
+not_matched <- df %>%
+  anti_join(sdf, by = c("country" = "COUNTRY")) |> # what countries didn't match correctly?
+  filter(!is.na(gender_inequality)) # and for which do we have the data?
+
+not_matched # show the result
+```
+
+We'll have to do something about that... 💪
+
+Let's map these names to their respective ISO codes, which are present in our world countries dataset,
+
+```{r}
+iso_mapping <- data.frame(
+  country = c("Korea (Republic of)", "Czechia", "Türkiye", "Iran (Islamic Republic of)", "Moldova (Republic of)","Viet Nam", "Bolivia (Plurinational State of)", "Venezuela (Bolivarian Republic of)","Lao People's Democratic Republic", "Eswatini (Kingdom of)", "Syrian Arab Republic","Tanzania (United Republic of)", "Congo (Democratic Republic of the)"),
+  iso_code = c("KR", "CZ", "TR", "IR", "MD", "VN", "BO", "VE", "LA", "SZ", "SY", "TZ", "CD")
+)
+```
+
+and join them together with the gender inequality index df.
+
+```{r}
+# Left join the df data frame with the iso_mapping data frame on the "country" column
+df_with_iso <- df %>%
+  left_join(iso_mapping, by = "country") |> 
+  filter(!is.na(iso_code))
+```
+
+Now, let's put these all together and see what we've got
+
+```{r}
+all <- left_join(result, df_with_iso, by = c("ISO" = "iso_code"))
+
+all$gender_inequality <- ifelse(is.na(all$gender_inequality.x), all$gender_inequality.y, all$gender_inequality.x)
+
+all <- subset(all, select = -c(gender_inequality.x, gender_inequality.y, country))
+
+tm_shape(all) +
+  tm_borders(lwd = 0.5) +
+  tm_fill("gender_inequality", palette = "Blues")
+```
+
+### It worked!
+
+## Choice! 🤩
+
+Save the data if you need to.
+
+```{r}
+#st_write(all, "gender_index_world.gpkg")
+```
+
+Good luck with the Homework for week 5!
+
+## and Happy Halloween 🎃
