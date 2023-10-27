@@ -15,7 +15,7 @@ This notebooks shows the steps to join the global gender inequality index to spa
 First, let's load some packages!
 
 ```{r message=FALSE, warning=FALSE}
-library(dplyr) # we'll need that to join
+library(dplyr) # we'll need that to join datasets
 library(sf) # we'll need that to deal with spatial data
 library(tmap) # we'll need that to make a map to check that what we did looks correct
 ```
@@ -42,13 +42,13 @@ don't worry about this warning - it's supposed to be there.
 ### Let's try to join the two datasets by matching the 'country' columns.
 
 ```{r}
-result <- left_join(sdf, df, by = c("COUNTRY" = "country"))
+sdf <- left_join(sdf, df, by = c("COUNTRY" = "country"))
 ```
 
 Seems that this worked, but let's quickly check if all the countries joined properly
 
 ```{r}
-tm_shape(result) +
+tm_shape(sdf) +
   tm_borders(lwd = 0.5) +
   tm_fill("gender_inequality", palette = "Blues")
 ```
@@ -80,7 +80,7 @@ and join them together with the gender inequality index df.
 
 ```{r}
 # Left join the df data frame with the iso_mapping data frame on the "country" column
-df_with_iso <- df %>%
+df <- df %>%
   left_join(iso_mapping, by = "country") |> 
   filter(!is.na(iso_code))
 ```
@@ -88,13 +88,13 @@ df_with_iso <- df %>%
 Now, let's put these all together and see what we've got
 
 ```{r}
-all <- left_join(result, df_with_iso, by = c("ISO" = "iso_code"))
+full_df <- left_join(sdf, df, by = c("ISO" = "iso_code")) # join the missing countries by the ISO code 
 
-all$gender_inequality <- ifelse(is.na(all$gender_inequality.x), all$gender_inequality.y, all$gender_inequality.x)
+full_df$gender_inequality <- ifelse(is.na(full_df$gender_inequality.x), full_df$gender_inequality.y, full_df$gender_inequality.x) # make the two index columns into one
 
-all <- subset(all, select = -c(gender_inequality.x, gender_inequality.y, country))
+full_df <- subset(full_df, select = -c(gender_inequality.x, gender_inequality.y, country)) #drop the columns we do not need
 
-tm_shape(all) +
+tm_shape(full_df) +
   tm_borders(lwd = 0.5) +
   tm_fill("gender_inequality", palette = "Blues")
 ```
@@ -106,7 +106,7 @@ tm_shape(all) +
 Save the data if you need to.
 
 ```{r}
-#st_write(all, "gender_index_world.gpkg")
+#st_write(full_df, "genderInequalityIndex.gpkg")
 ```
 
 Good luck with the Homework for week 5!
