@@ -5,3 +5,4 @@ data/*
 .httr-oauth
 .DS_Store
 .quarto
+wk4.Rproj
