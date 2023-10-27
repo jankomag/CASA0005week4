@@ -9,5 +9,6 @@ module for week 4 homework.
 
 You can view the notebook [here](https://github.com/jankomag/CASA0005week4/blob/main/homework_wk4d.Rmd)
 
+To download the final joined dataset click [here](https://github.com/jankomag/CASA0005week4/raw/main/genderInequalityIndex.gpkg).
 
 #### Hope you enjoy it! 😊
