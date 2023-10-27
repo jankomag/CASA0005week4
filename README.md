@@ -1,6 +1,7 @@
-# Hello!
+# CASA0005 week 4 homework
 
-## Welcome to this R notebook for CASA0005 module 🗺
+## Hello!
+### Welcome to this R notebook for CASA0005 module 🗺
 
 This repo contains the notebook which shows the steps to join the global 
 gender inequality index with spatial data of the World, creating a new 
