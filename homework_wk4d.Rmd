@@ -17,7 +17,8 @@ First, let's load some packages!
 ```{r message=FALSE, warning=FALSE}
 library(dplyr) # we'll need that to join datasets
 library(sf) # we'll need that to deal with spatial data
-library(tmap) # we'll need that to make a map to check that what we did looks correct
+library(tmap)# we'll need that to make a map to check that what we did looks correct
+library(countrycode)
 ```
 
 Now, let's load some data!
@@ -27,81 +28,50 @@ df <- read.csv("data/HDR21-22_Composite_indices.csv") # index data
 sdf <- st_read("data/World_Countries_Generalized.geojson") # and spatial data
 ```
 
-
 ```{r}
+df <- df[1:195, ] # only keep countries
+
 df <- df |> 
   select(c(iso3, gii_2010,gii_2019,country)) |> 
   mutate(gii_diff = gii_2019 - gii_2010)
+
+df$iso2 <- countrycode(df$iso3, origin = "iso3c", destination = "iso2c")
+
 ```
 
-### Let's try to join the two datasets by matching the 'country' columns.
+Joining dadasets on ISO2 codes
 
 ```{r}
-sdf <- left_join(sdf, df, by = c("COUNTRY" = "country"))
+sdf <- left_join(sdf, df, by = c("ISO" = "iso2"))
 ```
 
-Seems that this worked, but let's quickly check if all the countries joined properly
+Mapping
 
 ```{r}
 tm_shape(sdf) +
-  tm_borders(lwd = 0.5) +
-  tm_fill("gender_inequality", palette = "Blues")
+  tm_borders(lwd = 0.3) +
+  tm_fill("gii_diff", palette = "Blues", style="jenks")
 ```
 
 #### Hmmm, looks like there are quite a few missing values here. 😥
 
-Let's try to see which countries have not joined by country name. 🤔
-
+Let's see why that is
 ```{r}
 not_matched <- df %>%
-  anti_join(sdf, by = c("country" = "COUNTRY")) |> # what countries didn't match correctly?
-  filter(!is.na(gender_inequality)) # and for which do we have the data?
+  anti_join(sdf, by = c("iso2" = "ISO")) |> # what countries didn't match correctly?
+  filter(!is.na(gii_diff)) # and for which do we have the data?
 
 not_matched # show the result
 ```
 
-We'll have to do something about that... 💪
-
-Let's map these names to their respective ISO codes, which are present in our world countries dataset,
-
-```{r}
-iso_mapping <- data.frame(
-  country = c("Korea (Republic of)", "Czechia", "Türkiye", "Iran (Islamic Republic of)", "Moldova (Republic of)","Viet Nam", "Bolivia (Plurinational State of)", "Venezuela (Bolivarian Republic of)","Lao People's Democratic Republic", "Eswatini (Kingdom of)", "Syrian Arab Republic","Tanzania (United Republic of)", "Congo (Democratic Republic of the)"),
-  iso_code = c("KR", "CZ", "TR", "IR", "MD", "VN", "BO", "VE", "LA", "SZ", "SY", "TZ", "CD")
-)
-```
-
-and join them together with the gender inequality index df.
-
-```{r}
-# Left join the df data frame with the iso_mapping data frame on the "country" column
-df <- df %>%
-  left_join(iso_mapping, by = "country") |> 
-  filter(!is.na(iso_code))
-```
-
-Now, let's put these all together and see what we've got
-
-```{r}
-full_df <- left_join(sdf, df, by = c("ISO" = "iso_code")) # join the missing countries by the ISO code 
-
-full_df$gender_inequality <- ifelse(is.na(full_df$gender_inequality.x), full_df$gender_inequality.y, full_df$gender_inequality.x) # make the two index columns into one
-
-full_df <- subset(full_df, select = -c(gender_inequality.x, gender_inequality.y, country)) #drop the columns we do not need
-
-tm_shape(full_df) +
-  tm_borders(lwd = 0.5) +
-  tm_fill("gender_inequality", palette = "Blues")
-```
-
-### It worked!
+There are no countries which are not NA which haven't matched, so that's all good
 
 ## Choice! 🤩
 
 Save the data if you need to.
 
 ```{r}
-#st_write(full_df, "genderInequalityIndex.gpkg")
+st_write(sdf, "genderInequalityIndex.gpkg")
 ```
 
 Good luck with the Homework for week 5!
