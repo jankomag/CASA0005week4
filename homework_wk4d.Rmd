@@ -23,21 +23,16 @@ library(tmap) # we'll need that to make a map to check that what we did looks co
 Now, let's load some data!
 
 ```{r message=FALSE, warning=FALSE}
-df <- read.csv("data/gender_ineq.csv") # index data
+df <- read.csv("data/HDR21-22_Composite_indices.csv") # index data
 sdf <- st_read("data/World_Countries_Generalized.geojson") # and spatial data
 ```
 
-and make the index column numeric:
 
 ```{r}
-df$gender_inequality <- as.numeric(df$gender_inequality)
+df <- df |> 
+  select(c(iso3, gii_2010,gii_2019,country)) |> 
+  mutate(gii_diff = gii_2019 - gii_2010)
 ```
-
-### 🫣
-
-don't worry about this warning - it's supposed to be there.
-
-😅
 
 ### Let's try to join the two datasets by matching the 'country' columns.
 
